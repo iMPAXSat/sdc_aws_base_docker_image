@@ -18,7 +18,8 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
     - name: Build the Docker image (With ECR Ratelimit Fix)
       uses: nick-fields/retry@v2.7.0
       with:
@@ -26,8 +27,10 @@ jobs:
         retry_wait_seconds: 30
         max_attempts: 3
         timeout_minutes: 5
+
     - name: Download CST Testing Suite
       run: curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+
     - name: Run CST Tests
       run: container-structure-test test --image container-image:latest --config cst_config.yaml
 
