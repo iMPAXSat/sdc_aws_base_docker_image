@@ -1,0 +1,61 @@
+flowchart LR
+  %% iMPAXSat development pipeline architecture
+
+  subgraph github["GitHub: iMPAXSat organization"]
+    base_repo["sdc_aws_base_docker_image<br/>Ubuntu 24.04 + Python 3.12 base image"]
+    craft_repo["impax_craft<br/>Instrument template"]
+    iaxis_repo["impax_iaxis<br/>Instrument template"]
+    ifire_repo["impax_ifire<br/>Instrument template"]
+  end
+
+  subgraph aws["AWS account 351967858401"]
+    subgraph codebuild["AWS CodeBuild"]
+      base_build["Dev base image build<br/>privileged EC2 container<br/>linux/amd64 Docker build"]
+      sorting_build["build_impax_sdc_aws_sorting_lambda<br/>disabled trigger"]
+      processing_build["build_impax_sdc_aws_processing_lambda<br/>disabled trigger"]
+      artifact_build["build_impax_sdc_aws_artifact_lambda<br/>disabled trigger"]
+      concating_build["build_impax_sdc_aws_concating_lambda<br/>disabled trigger"]
+    end
+
+    subgraph ecr["Amazon ECR Public<br/>public.ecr.aws/w5r9l1c8"]
+      dev_image["dev-impax-swsoc-docker-lambda-base<br/>tags: dev-&lt;timestamp&gt;, latest"]
+      prod_image["impax-swsoc-docker-lambda-base<br/>tags: prod-&lt;tag/timestamp&gt;, latest"]
+    end
+  end
+
+  subgraph tests["Container test consumers"]
+    craft_tests["impax_craft container tests"]
+    iaxis_tests["impax_iaxis container tests"]
+    ifire_tests["impax_ifire container tests"]
+  end
+
+  developer["Developer / maintainer"] -->|"push to main or manual start"| base_repo
+  base_repo -->|"CodeBuild source"| base_build
+  base_build -->|"docker build --platform linux/amd64"| local_image["Local build image<br/>container-structure-test passes"]
+  local_image -->|"docker push"| dev_image
+  local_image -. "tag push or CDK_ENVIRONMENT=PRODUCTION" .-> prod_image
+
+  base_build -. "currently commented out" .-> sorting_build
+  base_build -. "currently commented out" .-> processing_build
+  base_build -. "currently commented out" .-> artifact_build
+  base_build -. "currently commented out" .-> concating_build
+
+  craft_repo --> craft_tests
+  iaxis_repo --> iaxis_tests
+  ifire_repo --> ifire_tests
+
+  dev_image -->|"docker pull latest or pinned dev tag"| craft_tests
+  dev_image -->|"docker pull latest or pinned dev tag"| iaxis_tests
+  dev_image -->|"docker pull latest or pinned dev tag"| ifire_tests
+
+  classDef repo fill:#eef6ff,stroke:#3b82f6,color:#0f172a
+  classDef build fill:#fff7ed,stroke:#f97316,color:#0f172a
+  classDef ecr fill:#ecfdf5,stroke:#10b981,color:#0f172a
+  classDef test fill:#f8fafc,stroke:#64748b,color:#0f172a
+  classDef disabled fill:#f1f5f9,stroke:#94a3b8,color:#64748b,stroke-dasharray: 5 5
+
+  class base_repo,craft_repo,iaxis_repo,ifire_repo repo
+  class base_build build
+  class dev_image,prod_image,local_image ecr
+  class craft_tests,iaxis_tests,ifire_tests test
+  class sorting_build,processing_build,artifact_build,concating_build disabled
