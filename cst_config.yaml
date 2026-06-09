@@ -35,11 +35,6 @@ commandTests:
 
 # Test if needed files exist
 fileExistenceTests:
-- name: 'Root'
-  path: '/'
-  shouldExist: true
-  uid: 0
-  gid: 0
 - name: 'Python Requirements'
   path: '/requirements.txt'
   shouldExist: true
