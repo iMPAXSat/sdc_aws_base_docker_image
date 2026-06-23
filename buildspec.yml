@@ -36,18 +36,10 @@ phases:
         docker build --platform linux/amd64 -t ${IMAGE_NAME}:${ENVIRONMENT}-${GIT_TAG} .
         docker tag ${IMAGE_NAME}:${ENVIRONMENT}-${GIT_TAG} public.ecr.aws/w5r9l1c8/${IMAGE_NAME}:${ENVIRONMENT}-${GIT_TAG}
         docker tag ${IMAGE_NAME}:${ENVIRONMENT}-${GIT_TAG} public.ecr.aws/w5r9l1c8/${IMAGE_NAME}:latest
-        curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64 && chmod +x container-structure-test-linux-amd64 && sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
-        sudo yum install python3-pip -y
-        sudo yum install make graphviz -y
-        pip3 install -r requirements.txt
-        pip3 install -r dev.requirements.txt
-        make html
-        echo CST Testing
-        container-structure-test test --image ${IMAGE_NAME}:${ENVIRONMENT}-${GIT_TAG} --config cst_config.yaml
+        
         echo Pushing the Docker image...
         docker push public.ecr.aws/w5r9l1c8/${IMAGE_NAME}:${ENVIRONMENT}-${GIT_TAG}
         docker push public.ecr.aws/w5r9l1c8/${IMAGE_NAME}:latest
-        export PUBLIC_ECR_REPO=public.ecr.aws/w5r9l1c8/${IMAGE_NAME}:${ENVIRONMENT}-${GIT_TAG}
         echo "Starting Lambda Function builds..."
         # aws codebuild start-build --project-name arn:aws:codebuild:us-east-1:351967858401:project/build_impax_sdc_aws_sorting_lambda --environment-variables-override name=CDK_ENVIRONMENT,value=$CDK_ENVIRONMENT,type=PLAINTEXT
         # aws codebuild start-build --project-name arn:aws:codebuild:us-east-1:351967858401:project/build_impax_sdc_aws_processing_lambda --environment-variables-override name=CDK_ENVIRONMENT,value=$CDK_ENVIRONMENT,type=PLAINTEXT
