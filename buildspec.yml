@@ -41,9 +41,23 @@ phases:
         docker push public.ecr.aws/w5r9l1c8/${IMAGE_NAME}:${ENVIRONMENT}-${GIT_TAG}
         docker push public.ecr.aws/w5r9l1c8/${IMAGE_NAME}:latest
         echo "Starting Lambda Function builds..."
-        # aws codebuild start-build --project-name arn:aws:codebuild:us-east-1:351967858401:project/build_impax_sdc_aws_sorting_lambda --environment-variables-override name=CDK_ENVIRONMENT,value=$CDK_ENVIRONMENT,type=PLAINTEXT
-        # aws codebuild start-build --project-name arn:aws:codebuild:us-east-1:351967858401:project/build_impax_sdc_aws_processing_lambda --environment-variables-override name=CDK_ENVIRONMENT,value=$CDK_ENVIRONMENT,type=PLAINTEXT
-        # aws codebuild start-build --project-name arn:aws:codebuild:us-east-1:351967858401:project/build_impax_sdc_aws_artifact_lambda --environment-variables-override name=CDK_ENVIRONMENT,value=$CDK_ENVIRONMENT,type=PLAINTEXT
+
+        echo "Starting sorting lambda CodeBuild project..."
+        aws codebuild start-build \
+          --project-name arn:aws:codebuild:us-east-1:351967858401:project/build_impax_sdc_aws_sorting_lambda \
+          --environment-variables-override name=CDK_ENVIRONMENT,value=$CDK_ENVIRONMENT,type=PLAINTEXT
+        
+        echo "Starting processing lambda CodeBuild project..."
+        aws codebuild start-build \
+          --project-name arn:aws:codebuild:us-east-1:351967858401:project/build_impax_sdc_aws_processing_lambda \
+          --environment-variables-override name=CDK_ENVIRONMENT,value=$CDK_ENVIRONMENT,type=PLAINTEXT
+
+        echo "Starting artifacts lambda CodeBuild project..."
+        aws codebuild start-build \
+          --project-name arn:aws:codebuild:us-east-1:351967858401:project/build_impax_sdc_aws_artifact_lambda \
+          --environment-variables-override name=CDK_ENVIRONMENT,value=$CDK_ENVIRONMENT,type=PLAINTEXT
+
+        echo "Starting concating lambda CodeBuild project..."
         # aws codebuild start-build --project-name arn:aws:codebuild:us-east-1:351967858401:project/build_impax_sdc_aws_concating_lambda --environment-variables-override name=CDK_ENVIRONMENT,value=$CDK_ENVIRONMENT,type=PLAINTEXT
       
   post_build:
