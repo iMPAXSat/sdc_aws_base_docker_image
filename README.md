@@ -13,7 +13,29 @@ This container is built and pushed to the public repo ECR automatically by AWS C
 
 ### **Base Image**: Ubuntu 24.04 ([public.ecr.aws/lts/ubuntu:24.04_stable](https://gallery.ecr.aws/lts/ubuntu))
 
-### **ECR Repo:** Docker Lambda Base Image ([public.ecr.aws/w5r9l1c8/swsoc-docker-lambda-base:latest](https://gallery.ecr.aws/w5r9l1c8/swsoc-docker-lambda-base))
+### **ECR Repos:** iMPAX Docker Lambda Base Images
+
+- Development: `public.ecr.aws/w5r9l1c8/dev-impax-swsoc-docker-lambda-base`
+- Production: `public.ecr.aws/w5r9l1c8/impax-swsoc-docker-lambda-base`
+
+## Deployment contract
+
+CodeBuild publishes only from the current `main` commit or a release tag.
+For pull requests and other branches, CodeBuild exits successfully without
+building or publishing. Each successful publish creates a unique immutable tag
+plus the environment's convenience `latest` tag.
+
+The sorting, processing, and artifacts builds are then started from their exact
+`main` source. They receive `CDK_ENVIRONMENT` and the immutable
+`PUBLIC_ECR_REPO` URI in one CodeBuild override list, ensuring every component
+uses the base image from the same build. Release tags target production;
+untagged `main` builds target development unless production is explicit.
+The base repository's SHA cannot identify a commit in a different Lambda
+repository, so each Lambda build independently verifies that its resolved SHA
+equals its own current `origin/main` before publishing.
+
+The `concating` Lambda is not fanned out because the iMPAX Terraform
+configuration does not currently enable that component.
 
 ## Included OS Packages
 - git
@@ -44,4 +66,3 @@ This Dockerfile also includes a process to download pre-built CDF binaries for d
 Furthermore, it contains a test script to check if the container includes the specified OS and Python requirements using the Container Structure Test. 
 
 The Dockerfile finally creates a user 'vscode' with sudo support to run the container.
-
